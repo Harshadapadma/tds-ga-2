@@ -17,21 +17,29 @@ SCOPE = "openid email profile"
 GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
 
+
 # Root route - redirect to Google login if not authenticated
 @app.get("/")
 def home(request: Request):
     if "id_token" not in request.session:
-        params = {
-            "client_id": CLIENT_ID,
-            "redirect_uri": REDIRECT_URI,
-            "response_type": "code",
-            "scope": SCOPE,
-            "access_type": "offline",
-            "prompt": "select_account"
-        }
-        url = f"{GOOGLE_AUTH_URL}?{urlencode(params)}"
-        return RedirectResponse(url)
+        return RedirectResponse("/login")
     return {"message": "You are already logged in"}
+
+
+# Dedicated login route
+@app.get("/login")
+def login():
+    params = {
+        "client_id": CLIENT_ID,
+        "redirect_uri": REDIRECT_URI,
+        "response_type": "code",
+        "scope": SCOPE,
+        "access_type": "offline",
+        "prompt": "select_account"
+    }
+    url = f"{GOOGLE_AUTH_URL}?{urlencode(params)}"
+    return RedirectResponse(url)
+
 
 # OAuth callback
 @app.get("/auth/callback")
@@ -50,6 +58,7 @@ async def auth_callback(request: Request, code: str = None):
         token_data = r.json()
     request.session["id_token"] = token_data.get("id_token")
     return RedirectResponse("/id_token")
+
 
 # Route to get id_token
 @app.get("/id_token")
