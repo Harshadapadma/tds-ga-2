@@ -67,3 +67,10 @@ def get_id_token(request: Request):
     if not id_token:
         return JSONResponse({"error": "Not authenticated"}, status_code=401)
     return {"id_token": id_token, "client_id": CLIENT_ID}
+
+
+# Logout route
+@app.get("/logout")
+def logout(request: Request):
+    request.session.clear()
+    return {"message": "Logged out successfully"}
